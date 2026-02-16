@@ -6,7 +6,7 @@ void main() {
 }
 
 class TaxiWebViewApp extends StatelessWidget {
-  const TaxiWebViewApp({Key? key}) : super(key: key);
+  const TaxiWebViewApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +22,7 @@ class TaxiWebViewApp extends StatelessWidget {
 }
 
 class TaxiWebView extends StatefulWidget {
-  const TaxiWebView({Key? key}) : super(key: key);
+  const TaxiWebView({super.key});
 
   @override
   State<TaxiWebView> createState() => _TaxiWebViewState();
@@ -38,7 +38,6 @@ class _TaxiWebViewState extends State<TaxiWebView> {
 
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse("https://taxisrilanka.com/"))
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (url) {
@@ -52,22 +51,32 @@ class _TaxiWebViewState extends State<TaxiWebView> {
             });
           },
         ),
-      );
+      )
+      ..loadRequest(Uri.parse("https://taxisrilanka.com/"));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          WebViewWidget(controller: _controller),
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (await _controller.canGoBack()) {
+          _controller.goBack();
+        } else {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            WebViewWidget(controller: _controller),
 
-          // Loading Indicator
-          if (isLoading)
-            const Center(
-              child: CircularProgressIndicator(),
-            ),
-        ],
+            if (isLoading)
+              const Center(
+                child: CircularProgressIndicator(),
+              ),
+          ],
+        ),
       ),
     );
   }
