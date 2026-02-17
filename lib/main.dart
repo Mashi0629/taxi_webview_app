@@ -41,14 +41,10 @@ class _TaxiWebViewState extends State<TaxiWebView> {
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (url) {
-            setState(() {
-              isLoading = true;
-            });
+            setState(() => isLoading = true);
           },
           onPageFinished: (url) {
-            setState(() {
-              isLoading = false;
-            });
+            setState(() => isLoading = false);
           },
         ),
       )
@@ -67,15 +63,17 @@ class _TaxiWebViewState extends State<TaxiWebView> {
         }
       },
       child: Scaffold(
-        body: Stack(
-          children: [
-            WebViewWidget(controller: _controller),
+        body: SafeArea(
+          child: Stack(
+            children: [
+              WebViewWidget(controller: _controller),
 
-            if (isLoading)
-              const Center(
-                child: CircularProgressIndicator(),
-              ),
-          ],
+              if (isLoading)
+                const Center(
+                  child: CircularProgressIndicator(),
+                ),
+            ],
+          ),
         ),
       ),
     );
