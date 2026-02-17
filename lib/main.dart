@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   runApp(const TaxiWebViewApp());
@@ -10,13 +11,9 @@ class TaxiWebViewApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Taxi Sri Lanka',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const TaxiWebView(),
+      home: TaxiWebView(),
     );
   }
 }
@@ -40,10 +37,26 @@ class _TaxiWebViewState extends State<TaxiWebView> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageStarted: (url) {
+          onNavigationRequest: (request) async {
+            final url = request.url;
+
+            if (url.startsWith("tel:") ||
+                url.startsWith("mailto:") ||
+                url.startsWith("whatsapp:") ||
+                url.contains("wa.me")) {
+              final uri = Uri.parse(url);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri);
+              }
+              return NavigationDecision.prevent;
+            }
+
+            return NavigationDecision.navigate;
+          },
+          onPageStarted: (_) {
             setState(() => isLoading = true);
           },
-          onPageFinished: (url) {
+          onPageFinished: (_) {
             setState(() => isLoading = false);
           },
         ),
@@ -67,11 +80,8 @@ class _TaxiWebViewState extends State<TaxiWebView> {
           child: Stack(
             children: [
               WebViewWidget(controller: _controller),
-
               if (isLoading)
-                const Center(
-                  child: CircularProgressIndicator(),
-                ),
+                const Center(child: CircularProgressIndicator()),
             ],
           ),
         ),
